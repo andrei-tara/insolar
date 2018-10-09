@@ -355,16 +355,17 @@ type One struct {
 	foundation.BaseContract
 }
 
-func (r *One) Hello(s string) string {
+func (r *One) Hello(s string) (string, error) {
 	holder := two.New()
 	friend := holder.AsDelegate(r.GetReference())
 
-	res := friend.Hello(s)
+	res, err := friend.Hello(s)
+	_ = err
 
-	return "Hi, " + s + "! Two said: " + res
+	return "Hi, " + s + "! Two said: " + res, nil
 }
 
-func (r *One) HelloFromDelegate(s string) string {
+func (r *One) HelloFromDelegate(s string) (string, error) {
 	friend := two.GetImplementationFrom(r.GetReference())
 	return friend.Hello(s)
 }
@@ -388,9 +389,9 @@ func New() *Two {
 	return &Two{X:322};
 }
 
-func (r *Two) Hello(s string) string {
+func (r *Two) Hello(s string) (string, error) {
 	r.X *= 2
-	return fmt.Sprintf("Hello you too, %s. %d times!", s, r.X)
+	return fmt.Sprintf("Hello you too, %s. %d times!", s, r.X), nil
 }
 `
 	lr, am, cb, cleaner := PrepareLrAmCb(t)
