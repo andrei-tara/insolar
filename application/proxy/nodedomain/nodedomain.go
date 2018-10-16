@@ -2,6 +2,7 @@ package nodedomain
 
 import (
 	"github.com/insolar/insolar/core"
+	"github.com/insolar/insolar/logicrunner/goplugin/foundation"
 	"github.com/insolar/insolar/logicrunner/goplugin/proxyctx"
 )
 
@@ -80,7 +81,7 @@ func (r *NodeDomain) GetClass() core.RecordRef {
 }
 
 // RegisterNode is proxy generated method
-func (r *NodeDomain) RegisterNode(pk string, role string) core.RecordRef {
+func (r *NodeDomain) RegisterNode(pk string, role string) (*core.RecordRef, error) {
 	var args [2]interface{}
 	args[0] = pk
 	args[1] = role
@@ -97,16 +98,18 @@ func (r *NodeDomain) RegisterNode(pk string, role string) core.RecordRef {
 		panic(err)
 	}
 
-	ret := [1]interface{}{}
-	var ret0 core.RecordRef
+	ret := [2]interface{}{}
+	var ret0 *core.RecordRef
 	ret[0] = &ret0
+	var ret1 *foundation.Error
+	ret[1] = &ret1
 
 	err = proxyctx.Current.Deserialize(res, &ret)
 	if err != nil {
 		panic(err)
 	}
 
-	return ret0
+	return ret0, ret1
 }
 
 // RegisterNodeNoWait is proxy generated method
@@ -174,7 +177,7 @@ func (r *NodeDomain) RemoveNodeNoWait(nodeRef core.RecordRef) {
 }
 
 // IsAuthorized is proxy generated method
-func (r *NodeDomain) IsAuthorized(nodeRef core.RecordRef, seed []byte, signatureRaw []byte) bool {
+func (r *NodeDomain) IsAuthorized(nodeRef core.RecordRef, seed []byte, signatureRaw []byte) error {
 	var args [3]interface{}
 	args[0] = nodeRef
 	args[1] = seed
@@ -193,7 +196,7 @@ func (r *NodeDomain) IsAuthorized(nodeRef core.RecordRef, seed []byte, signature
 	}
 
 	ret := [1]interface{}{}
-	var ret0 bool
+	var ret0 *foundation.Error
 	ret[0] = &ret0
 
 	err = proxyctx.Current.Deserialize(res, &ret)
@@ -225,7 +228,7 @@ func (r *NodeDomain) IsAuthorizedNoWait(nodeRef core.RecordRef, seed []byte, sig
 }
 
 // Authorize is proxy generated method
-func (r *NodeDomain) Authorize(nodeRef core.RecordRef, seed []byte, signatureRaw []byte) (string, core.NodeRole, string) {
+func (r *NodeDomain) Authorize(nodeRef core.RecordRef, seed []byte, signatureRaw []byte) (string, core.NodeRole, error) {
 	var args [3]interface{}
 	args[0] = nodeRef
 	args[1] = seed
@@ -248,7 +251,7 @@ func (r *NodeDomain) Authorize(nodeRef core.RecordRef, seed []byte, signatureRaw
 	ret[0] = &ret0
 	var ret1 core.NodeRole
 	ret[1] = &ret1
-	var ret2 string
+	var ret2 *foundation.Error
 	ret[2] = &ret2
 
 	err = proxyctx.Current.Deserialize(res, &ret)

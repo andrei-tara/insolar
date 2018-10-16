@@ -2,6 +2,7 @@ package rootdomain
 
 import (
 	"github.com/insolar/insolar/core"
+	"github.com/insolar/insolar/logicrunner/goplugin/foundation"
 	"github.com/insolar/insolar/logicrunner/goplugin/proxyctx"
 )
 
@@ -80,7 +81,7 @@ func (r *RootDomain) GetClass() core.RecordRef {
 }
 
 // RegisterNode is proxy generated method
-func (r *RootDomain) RegisterNode(publicKey string, role string) string {
+func (r *RootDomain) RegisterNode(publicKey string, role string) (string, error) {
 	var args [2]interface{}
 	args[0] = publicKey
 	args[1] = role
@@ -97,16 +98,18 @@ func (r *RootDomain) RegisterNode(publicKey string, role string) string {
 		panic(err)
 	}
 
-	ret := [1]interface{}{}
+	ret := [2]interface{}{}
 	var ret0 string
 	ret[0] = &ret0
+	var ret1 *foundation.Error
+	ret[1] = &ret1
 
 	err = proxyctx.Current.Deserialize(res, &ret)
 	if err != nil {
 		panic(err)
 	}
 
-	return ret0
+	return ret0, ret1
 }
 
 // RegisterNodeNoWait is proxy generated method
@@ -129,7 +132,7 @@ func (r *RootDomain) RegisterNodeNoWait(publicKey string, role string) {
 }
 
 // Authorize is proxy generated method
-func (r *RootDomain) Authorize() (string, core.NodeRole, string) {
+func (r *RootDomain) Authorize() (string, core.NodeRole, error) {
 	var args [0]interface{}
 
 	var argsSerialized []byte
@@ -149,7 +152,7 @@ func (r *RootDomain) Authorize() (string, core.NodeRole, string) {
 	ret[0] = &ret0
 	var ret1 core.NodeRole
 	ret[1] = &ret1
-	var ret2 string
+	var ret2 *foundation.Error
 	ret[2] = &ret2
 
 	err = proxyctx.Current.Deserialize(res, &ret)
