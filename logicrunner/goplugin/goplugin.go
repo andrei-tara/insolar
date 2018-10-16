@@ -91,7 +91,7 @@ const timeout = time.Minute * 10
 func (gp *GoPlugin) CallMethod(ctx *core.LogicCallContext, code core.RecordRef, data []byte, method string, args core.Arguments) ([]byte, core.Arguments, error) {
 	client, err := gp.Downstream()
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "problem with rpc connection")
+		return nil, nil, errors.Wrap(err, "[ CallMethod ] problem with rpc connection")
 	}
 
 	res := rpctypes.DownCallMethodResp{}
@@ -106,10 +106,10 @@ func (gp *GoPlugin) CallMethod(ctx *core.LogicCallContext, code core.RecordRef, 
 	select {
 	case call := <-client.Go("RPC.CallMethod", req, &res, nil).Done:
 		if call.Error != nil {
-			return nil, nil, errors.Wrap(call.Error, "problem with API call")
+			return nil, nil, errors.Wrap(call.Error, "[ CallMethod ] problem with API call")
 		}
 	case <-time.After(timeout):
-		return nil, nil, errors.New("logicrunner execution timeout")
+		return nil, nil, errors.New("[ CallMethod ] logicrunner execution timeout")
 	}
 	return res.Data, res.Ret, nil
 }
@@ -118,7 +118,7 @@ func (gp *GoPlugin) CallMethod(ctx *core.LogicCallContext, code core.RecordRef, 
 func (gp *GoPlugin) CallConstructor(ctx *core.LogicCallContext, code core.RecordRef, name string, args core.Arguments) ([]byte, error) {
 	client, err := gp.Downstream()
 	if err != nil {
-		return nil, errors.Wrap(err, "problem with rpc connection")
+		return nil, errors.Wrap(err, "[ CallConstructor ] problem with rpc connection")
 	}
 
 	res := rpctypes.DownCallConstructorResp{}
@@ -127,10 +127,10 @@ func (gp *GoPlugin) CallConstructor(ctx *core.LogicCallContext, code core.Record
 	select {
 	case call := <-client.Go("RPC.CallConstructor", req, &res, nil).Done:
 		if call.Error != nil {
-			return nil, errors.Wrap(call.Error, "problem with API call")
+			return nil, errors.Wrap(call.Error, "[ CallConstructor ] problem with API call")
 		}
 	case <-time.After(timeout):
-		return nil, errors.New("logicrunner execution timeout")
+		return nil, errors.New("[ CallConstructor ] logicrunner execution timeout")
 	}
 	return res.Ret, nil
 }
