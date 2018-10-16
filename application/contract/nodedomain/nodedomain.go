@@ -34,11 +34,15 @@ func NewNodeDomain() *NodeDomain {
 }
 
 // RegisterNode registers node in system
-func (nd *NodeDomain) RegisterNode(pk string, role string) core.RecordRef {
+func (nd *NodeDomain) RegisterNode(pk string, role string) (*core.RecordRef, error) {
 	// TODO: what should be done when record already exists?
 	newRecord := noderecord.NewNodeRecord(pk, role)
+	if newRecord == nil {
+		return nil, &foundation.Error{S: "[ RegisterNode ] bad role"}
+	}
 	record := newRecord.AsChild(nd.GetReference())
-	return record.GetReference()
+	ref := record.GetReference()
+	return &ref, nil
 }
 
 func (nd *NodeDomain) getNodeRecord(ref core.RecordRef) *noderecord.NodeRecord {
@@ -52,39 +56,30 @@ func (nd *NodeDomain) RemoveNode(nodeRef core.RecordRef) {
 }
 
 // IsAuthorized checks is signature correct
-func (nd *NodeDomain) IsAuthorized(nodeRef core.RecordRef, seed []byte, signatureRaw []byte) bool {
+func (nd *NodeDomain) IsAuthorized(nodeRef core.RecordRef, seed []byte, signatureRaw []byte) error {
 	nodeR := nd.getNodeRecord(nodeRef)
 	ok, err := ecdsa.Verify(seed, signatureRaw, nodeR.GetPublicKey())
 	if err != nil {
-		panic(err)
+		return &foundation.Error{S: "[ IsAuthorized ] Problem with verifying signature: " + err.Error()}
 	}
-	return ok
+	if !ok {
+		return &foundation.Error{S: "[ IsAuthorized ] Wrong signature: " + err.Error()}
+	}
+
+	return nil
 }
 
 // Authorize checks node and returns node info
-func (nd *NodeDomain) Authorize(nodeRef core.RecordRef, seed []byte, signatureRaw []byte) (pubKey string, role core.NodeRole, errS string) {
-	// TODO: this should be removed when proxies stop panic
-	defer func() {
-		if r := recover(); r != nil {
-			pubKey = ""
-			role = core.RoleUnknown
-			err, ok := r.(error)
-			errTxt := ""
-			if ok {
-				errTxt = err.Error()
-			}
-			errS = "[ Authorize ] Recover after panic: " + errTxt
-		}
-	}()
+func (nd *NodeDomain) Authorize(nodeRef core.RecordRef, seed []byte, signatureRaw []byte) (string, core.NodeRole, error) {
 	nodeR := nd.getNodeRecord(nodeRef)
-	role, pubKey = nodeR.GetRoleAndPublicKey()
+	role, pubKey := nodeR.GetRoleAndPublicKey()
 	ok, err := ecdsa.Verify(seed, signatureRaw, pubKey)
 	if err != nil {
-		return "", core.RoleUnknown, "[ Authorize ] Problem with verifying of signature: " + err.Error()
+		return "", core.RoleUnknown, &foundation.Error{S: "[ Authorize ] Problem with verifying of signature: " + err.Error()}
 	}
 	if !ok {
-		return "", core.RoleUnknown, "[ Authorize ] Can't verify signature: " + err.Error()
+		return "", core.RoleUnknown, &foundation.Error{S: "[ Authorize ] Can't verify signature: " + err.Error()}
 	}
 
-	return pubKey, role, ""
+	return pubKey, role, nil
 }

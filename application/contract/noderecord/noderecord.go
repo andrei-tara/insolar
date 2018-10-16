@@ -29,13 +29,12 @@ type NodeRecord struct {
 	Role      core.NodeRole
 }
 
-// New creates new NodeRecord
+// NewNodeRecord creates new NodeRecord
 func NewNodeRecord(pk string, roleS string) *NodeRecord {
 
 	role := core.GetRoleFromString(roleS)
 	if role == core.RoleUnknown {
-		// TODO: return error
-		panic("Can't unsupported role")
+		return nil
 	}
 
 	return &NodeRecord{
@@ -59,7 +58,7 @@ func (nr *NodeRecord) GetRoleAndPublicKey() (core.NodeRole, string) {
 	return nr.Role, nr.PublicKey
 }
 
-// SelfDestroy makes request to destroy current node record
+// Destroy makes request to destroy current node record
 func (nr *NodeRecord) Destroy() {
 	nr.SelfDestruct()
 }

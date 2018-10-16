@@ -36,18 +36,23 @@ type RootDomain struct {
 }
 
 // RegisterNode processes register node request
-func (rd *RootDomain) RegisterNode(publicKey string, role string) string {
+func (rd *RootDomain) RegisterNode(publicKey string, role string) (string, error) {
 	domainRefs, err := rd.GetChildrenTyped(nodedomain.ClassReference)
 	if err != nil {
-		panic(err)
+		return "", &foundation.Error{S: "[ RegisterNode ] Can't get children: " + err.Error()}
 	}
 
 	if len(domainRefs) == 0 {
-		panic("No NodeDomain references")
+		return "", &foundation.Error{S: "No NodeDomain references"}
 	}
 	nd := nodedomain.GetObject(domainRefs[0])
 
-	return nd.RegisterNode(publicKey, role).String()
+	ref, err := nd.RegisterNode(publicKey, role)
+	if err != nil {
+		return "", &foundation.Error{S: "[ RegisterNode ] Can't register node: " + err.Error()}
+	}
+
+	return ref.String(), nil
 }
 
 func makeSeed() []byte {
@@ -61,30 +66,33 @@ func makeSeed() []byte {
 }
 
 // Authorize checks is node authorized
-func (rd *RootDomain) Authorize() (string, core.NodeRole, string) {
+func (rd *RootDomain) Authorize() (string, core.NodeRole, error) {
 	privateKey, err := cryptoHelper.GeneratePrivateKey()
 	if err != nil {
-		panic(err)
+		return "", core.RoleUnknown, &foundation.Error{S: "[ Authorize ] Can't generate private key: " + err.Error()}
 	}
 
 	// Make signature
 	seed := makeSeed()
 	signature, err := cryptoHelper.Sign(seed, privateKey)
 	if err != nil {
-		panic(err)
+		return "", core.RoleUnknown, &foundation.Error{S: "[ Authorize ] Can't sign data: " + err.Error()}
 	}
 
 	// Register node
 	serPubKey, err := cryptoHelper.ExportPublicKey(&privateKey.PublicKey)
 	if err != nil {
-		panic(err)
+		return "", core.RoleUnknown, &foundation.Error{S: "[ Authorize ] Can't export public key: " + err.Error()}
 	}
-	nodeRef := rd.RegisterNode(serPubKey, "virtual")
+	nodeRef, err := rd.RegisterNode(serPubKey, "virtual")
+	if err != nil {
+		return "", core.RoleUnknown, &foundation.Error{S: "[ Authorize ] Can't register node: " + err.Error()}
+	}
 
 	// Validate
 	domainRefs, err := rd.GetChildrenTyped(nodedomain.ClassReference)
 	if err != nil {
-		panic(err)
+		return "", core.RoleUnknown, &foundation.Error{S: "[ Authorize ] Can't get children: " + err.Error()}
 	}
 	nd := nodedomain.GetObject(domainRefs[0])
 
