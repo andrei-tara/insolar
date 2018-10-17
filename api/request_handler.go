@@ -239,10 +239,13 @@ func (rh *RequestHandler) ProcessSendMoney() (map[string]interface{}, error) {
 
 func extractDumpAllUsersResponse(data []byte) ([]byte, error) {
 	var typeHolder []byte
-	dataUnmarsh, err := core.UnMarshalResponse(data, []interface{}{typeHolder})
+	var errorS error
+	dataUnmarsh, err := core.UnMarshalResponse(data, []interface{}{typeHolder, errorS})
 	if err != nil {
 		return nil, errors.Wrap(err, "[ extractDumpAllUsersResponse ]")
 	}
+
+	// TODO: check errorS
 
 	dumpJSON, ok := dataUnmarsh[0].([]byte)
 	if !ok {

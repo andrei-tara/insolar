@@ -41,11 +41,13 @@ func serializeToJSON(data interface{}) ([]byte, error) {
 	return json.MarshalIndent(data, "", "    ")
 }
 
+// Certificate holds certificate information
 type Certificate struct {
 	CertRecords CertRecords `json:"nodes"`
 	Signs       []string    `json:"signatures"`
 }
 
+// NewCertificateFromFile creates Certificate from file
 func NewCertificateFromFile(path string) (*Certificate, error) {
 	data, err := ioutil.ReadFile(filepath.Clean(path))
 	if err != nil {
@@ -99,6 +101,7 @@ func dumpRecords(cRecords CertRecords) ([]byte, error) {
 	return serializeToJSON(cRecords)
 }
 
+// Validate checks data in certificate
 func (cr *Certificate) Validate() error {
 	if len(cr.Signs) != len(cr.CertRecords) {
 		return errors.New("[ Validate ] Wrong number of nodes and signatures")
@@ -130,6 +133,7 @@ func (cr *Certificate) Validate() error {
 	return nil
 }
 
+// Dump returns string representation of Certificate
 func (cr *Certificate) Dump() (string, error) {
 	result, err := serializeToJSON(cr)
 	if err != nil {

@@ -101,14 +101,11 @@ func (rd *RootDomain) Authorize() (string, core.NodeRole, error) {
 
 // CreateMember processes create member request
 func (rd *RootDomain) CreateMember(name string, key string) string {
-	//if rd.GetContext().Caller != nil && *rd.GetContext().Caller == *rd.RootMember {
 	memberHolder := member.New(name, key)
 	m := memberHolder.AsChild(rd.GetReference())
 	wHolder := wallet.New(1000)
 	wHolder.AsDelegate(m.GetReference())
 	return m.GetReference().String()
-	//}
-	//return ""
 }
 
 // GetBalance processes get balance request
@@ -143,11 +140,11 @@ func (rd *RootDomain) DumpUserInfo(reference string) []byte {
 }
 
 // DumpAllUsers processes dump all users request
-func (rd *RootDomain) DumpAllUsers() []byte {
+func (rd *RootDomain) DumpAllUsers() ([]byte, error) {
 	res := []map[string]interface{}{}
 	crefs, err := rd.GetChildrenTyped(member.ClassReference)
 	if err != nil {
-		panic(err)
+		return nil, &foundation.Error{S: "Can't do GetChildrenTyped: " + err.Error()}
 	}
 	for _, cref := range crefs {
 		m := member.GetObject(cref)
@@ -155,7 +152,7 @@ func (rd *RootDomain) DumpAllUsers() []byte {
 		res = append(res, userInfo)
 	}
 	resJSON, _ := json.Marshal(res)
-	return resJSON
+	return resJSON, nil
 }
 
 // NewRootDomain creates new RootDomain

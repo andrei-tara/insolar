@@ -24,19 +24,24 @@ import (
 	"github.com/insolar/insolar/logicrunner/goplugin/proxyctx"
 )
 
+// Member holds member's info
 type Member struct {
 	foundation.BaseContract
 	Name      string
 	PublicKey string
 }
 
+// GetName returns name of the member
 func (m *Member) GetName() string {
 	return m.Name
 }
+
+// GetPublicKey returns member's public key
 func (m *Member) GetPublicKey() string {
 	return m.PublicKey
 }
 
+// New creates new member
 func New(name string, key string) *Member {
 	return &Member{
 		Name:      name,
@@ -44,6 +49,7 @@ func New(name string, key string) *Member {
 	}
 }
 
+// AuthorizedCall makes authorized call from member
 func (m *Member) AuthorizedCall(ref core.RecordRef, delegate core.RecordRef, method string, params []byte, seed []byte, sign []byte) ([]byte, *foundation.Error) {
 	serialized, err := signer.Serialize(ref[:], delegate[:], method, params, seed)
 	if err != nil {

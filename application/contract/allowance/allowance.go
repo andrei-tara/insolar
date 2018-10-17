@@ -23,6 +23,7 @@ import (
 	"github.com/insolar/insolar/logicrunner/goplugin/foundation"
 )
 
+// Allowance holds allowance information
 type Allowance struct {
 	foundation.BaseContract
 	To         core.RecordRef
@@ -30,10 +31,12 @@ type Allowance struct {
 	ExpireTime int64
 }
 
+// IsExpired checks is Allowance alive
 func (a *Allowance) IsExpired() bool {
 	return a.GetContext().Time.After(time.Unix(a.ExpireTime, 0))
 }
 
+// TakeAmount returns allowance amd destroy it
 func (a *Allowance) TakeAmount() uint {
 	caller := a.GetContext().Caller
 	if *caller == a.To && !a.IsExpired() {
@@ -43,6 +46,7 @@ func (a *Allowance) TakeAmount() uint {
 	return 0
 }
 
+// GetBalanceForOwner checks is allowance alive and return its amount
 func (a *Allowance) GetBalanceForOwner() uint {
 	if !a.IsExpired() {
 		return a.Amount
@@ -50,6 +54,7 @@ func (a *Allowance) GetBalanceForOwner() uint {
 	return 0
 }
 
+// DeleteExpiredAllowance destroys allowance if it's expired
 func (a *Allowance) DeleteExpiredAllowance() uint {
 	if a.GetContext().Caller == a.GetContext().Parent && !a.IsExpired() {
 		a.SelfDestruct()
@@ -58,6 +63,7 @@ func (a *Allowance) DeleteExpiredAllowance() uint {
 	return 0
 }
 
+// New creates new allowance
 func New(to *core.RecordRef, amount uint, expire int64) *Allowance {
 	return &Allowance{To: *to, Amount: amount, ExpireTime: expire}
 }

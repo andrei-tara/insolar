@@ -24,13 +24,13 @@ import (
 	"github.com/insolar/insolar/application/proxy/wallet"
 )
 
-// Wallet - basic wallet contract
+// Wallet is a basic wallet contract
 type Wallet struct {
 	foundation.BaseContract
 	Balance uint
 }
 
-// Allocate - returns reference to a new allowance
+// Allocate returns reference to a new allowance
 func (w *Wallet) Allocate(amount uint, to *core.RecordRef) core.RecordRef {
 	// TODO check balance is enough
 	w.Balance -= amount
@@ -39,6 +39,7 @@ func (w *Wallet) Allocate(amount uint, to *core.RecordRef) core.RecordRef {
 	return a.GetReference()
 }
 
+// Receive moves money form somebody to current wallet
 func (w *Wallet) Receive(amount uint, from *core.RecordRef) {
 	fromWallet := wallet.GetImplementationFrom(*from)
 
@@ -47,6 +48,7 @@ func (w *Wallet) Receive(amount uint, from *core.RecordRef) {
 	w.Balance += allowance.GetObject(aRef).TakeAmount()
 }
 
+// Transfer moves money from current wallet to another
 func (w *Wallet) Transfer(amount uint, to *core.RecordRef) {
 	w.Balance -= amount
 
@@ -60,10 +62,12 @@ func (w *Wallet) Transfer(amount uint, to *core.RecordRef) {
 	toWallet.Accept(&r)
 }
 
+// Accept consumes allowance
 func (w *Wallet) Accept(aRef *core.RecordRef) {
 	w.Balance += allowance.GetObject(*aRef).TakeAmount()
 }
 
+// GetTotalBalance returns total balance including all allowances
 func (w *Wallet) GetTotalBalance() uint {
 	var totalAllowanced uint
 	crefs, err := w.GetChildrenTyped(allowance.GetClass())
@@ -78,6 +82,7 @@ func (w *Wallet) GetTotalBalance() uint {
 	return w.Balance + totalAllowanced
 }
 
+// ReturnAndDeleteExpiredAllowances collects all allowances
 func (w *Wallet) ReturnAndDeleteExpiredAllowances() {
 	crefs, err := w.GetChildrenTyped(allowance.GetClass())
 	if err != nil {
@@ -89,6 +94,7 @@ func (w *Wallet) ReturnAndDeleteExpiredAllowances() {
 	}
 }
 
+// New creates new wallet
 func New(balance uint) *Wallet {
 	return &Wallet{
 		Balance: balance,
